@@ -7,12 +7,8 @@ const User = require('../users/users-model')
     "message": "You shall not pass!"
   }
 */
-function restricted(req, res, next) {
-      if(req.session.user){
-        next()
-      } else{
-        next({ status: 401, message: 'You shall not pass!'})
-      }
+function restricted() {
+         
 }
 
 /*
@@ -30,7 +26,7 @@ async function checkUsernameFree(req, res, next) {
           next()
         }
         else {
-          next({message: "Username taken", status: 422})
+          next({"message": "username taken"})
         }
       }catch(err){
         next(err)
@@ -49,7 +45,6 @@ async function checkUsernameExists(req, res, next) {
    try{
     const users = await User.findBy({ username: req.body.username})
     if(users.length){
-     req.user = users[0]
       next()
     }
     else{

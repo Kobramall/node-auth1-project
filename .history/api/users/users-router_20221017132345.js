@@ -2,7 +2,7 @@
 const express = require('express')
 const User = require('./users-model')
 const router = express.Router()
-const { restricted } = require('../auth/auth-middleware')
+const restricted = require('../auth/auth-middleware')
 /**
   [GET] /api/users
 
@@ -29,8 +29,8 @@ router.get('/', restricted,  async (req, res, next) =>{
   try{
    const users = await User.find()
    res.json(users)
-  }catch(error){
-    next(error)
+  }catch(err){
+    next(err)
   }
 })
 

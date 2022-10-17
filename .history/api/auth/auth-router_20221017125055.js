@@ -3,13 +3,12 @@
 const router = require('express').Router()
 const bcrypt = require('bcryptjs')
 const User = require('../users/users-model')
-const {checkPasswordLength, checkUsernameFree, checkUsernameExists} = require('./auth-middleware')
+const {checkPasswordLength, checkUsernameFree} = require('./auth-middleware')
 
 router.post('/register',checkPasswordLength, checkUsernameFree, (req, res, next) => {
   const { username, password } = req.body
-  const hash = bcrypt.hashSync(password, 8)
-   
-  User.add({ username, password: hash})
+  const hash = bcrypt.hashSync(password, 12)
+   User.add({ username, password: hash})
     .then(saved => {
       res.status(201).json(saved)
     })
@@ -17,27 +16,33 @@ router.post('/register',checkPasswordLength, checkUsernameFree, (req, res, next)
 
 })
 
-router.post('/login', checkUsernameExists,(req, res, next) =>{
-   const { password } = req.body
-    if(bcrypt.compareSync(password, req.user.password)) {
-      req.session.user = req.user
-      res.json({ message: `Welcome ${req.user.username}`})
+router.post('/login', async (req, res, next) =>{
+  try{
+    const { username, password } = req.body
+    const [ user ] = User.findBy({ username})
+    if(user && bcrypt.compareSync(password, user.password)) {
+      req.session.user = user
+      res.json({ message: `welcome back, ${user.username}`})
     } else{
-      next({ status: 401, message: 'Invalid credentials'})
+      next({ status: 401, message: 'bad credentials'})
     }
-  })
+  } catch(err){
+    next(err)
+  }
+})
 
-router.get('/logout', async (req, res, next) =>{
+router.get('/logout', async (req, res) =>{
   if(req.session.user){
+    const { username } = req.session.user
     req.session.destroy(err => {
       if(err){
-        next(err)
+        res.json({ message: 'you can never leave'})
       } else{
-        res.json({ message: 'logged out'})
+        res.json({ message: `Goodbye ${username}`})
       }
     })
   }else{
-    res.json({ message: 'no session'})
+    res.json({ message: 'sorry, have we met?'})
   }
 })
 /**

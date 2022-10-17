@@ -30,7 +30,7 @@ async function checkUsernameFree(req, res, next) {
           next()
         }
         else {
-          next({message: "Username taken", status: 422})
+          next({"message": "username taken"})
         }
       }catch(err){
         next(err)

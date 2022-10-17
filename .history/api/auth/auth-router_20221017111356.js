@@ -3,42 +3,17 @@
 const router = require('express').Router()
 const bcrypt = require('bcryptjs')
 const User = require('../users/users-model')
-const {checkPasswordLength, checkUsernameFree, checkUsernameExists} = require('./auth-middleware')
 
-router.post('/register',checkPasswordLength, checkUsernameFree, (req, res, next) => {
+router.post('/register', async (req, res, next) => {
+  try{
   const { username, password } = req.body
-  const hash = bcrypt.hashSync(password, 8)
-   
-  User.add({ username, password: hash})
-    .then(saved => {
-      res.status(201).json(saved)
-    })
-    .catch(next)
-
-})
-
-router.post('/login', checkUsernameExists,(req, res, next) =>{
-   const { password } = req.body
-    if(bcrypt.compareSync(password, req.user.password)) {
-      req.session.user = req.user
-      res.json({ message: `Welcome ${req.user.username}`})
-    } else{
-      next({ status: 401, message: 'Invalid credentials'})
-    }
-  })
-
-router.get('/logout', async (req, res, next) =>{
-  if(req.session.user){
-    req.session.destroy(err => {
-      if(err){
-        next(err)
-      } else{
-        res.json({ message: 'logged out'})
-      }
-    })
-  }else{
-    res.json({ message: 'no session'})
-  }
+  const hash = bcrypt.hashSync(password, 12)
+  const newUser = { username, password: hash}
+  const result = await User.add(newUser)
+  console.log(result)
+}catch(err){
+  next(err)
+}
 })
 /**
   1 [POST] /api/auth/register { "username": "sue", "password": "1234" }
